@@ -77,12 +77,7 @@ const TicketForm = ({ticket}) => {
       router.push("/");
     }
    }
-   const categories = [
-      "Hardware Problem",
-      "Software Problem",
-      "Application Deveopment",
-      "Project",
-    ];
+   const categories = ["Hardware Problem", "Software Problem", "Application Development", "Project"]
   return (
     <div className="flex justify-center">
       <form action="" method="post" onSubmit={handleSubmit} className="flex flex-col gap-3 w-1/2">

@@ -1,56 +1,68 @@
-import React from "react";
+'use client'
+import React, { useEffect, useState } from "react";
 import TicketCard from "./(components)/TicketCard";
 
+// Hàm gọi API để lấy danh sách tickets
 const getTickets = async () => {
   try {
-    const res = await fetch("http://localhost:3000/api/Tickets", {
-      cache: "no-store",
-    });
+    const res = await fetch("/api/Tickets", { cache: "no-store" });
 
     if (!res.ok) {
-      throw new Error("Failed to fetch topics");
+      throw new Error("Failed to fetch tickets");
     }
 
     return res.json();
   } catch (error) {
-    console.log("Error loading topics: ", error);
+    console.log("Error loading tickets: ", error);
+    return { tickets: [] }; // Trả về danh sách rỗng nếu có lỗi
   }
 };
 
-const Dashboard = async () => {
-  const data = await getTickets();
+const Dashboard = () => {
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Make sure we have tickets needed for production build.
-  if (!data?.tickets) {
-    return <p>No tickets.</p>;
+  // Lấy dữ liệu từ API khi component được mount
+  useEffect(() => {
+    const fetchTickets = async () => {
+      const data = await getTickets();
+      setTickets(data.tickets);
+      setLoading(false);
+    };
+
+    fetchTickets();
+  }, []);
+
+  // Kiểm tra khi chưa có dữ liệu hoặc đang tải
+  if (loading) {
+    return <p>Loading tickets...</p>;
   }
 
-  const tickets = data.tickets;
+  if (tickets?.length === 0) {
+    return <p>No tickets available.</p>;
+  }
 
-  const uniqueCategories = [
-    ...new Set(tickets?.map(({ category }) => category)),
-  ];
+  // Lấy các danh mục duy nhất từ các ticket
+  const uniqueCategories = [...new Set(tickets.map((ticket) => ticket.category))];
 
   return (
     <div className="p-5">
       <div>
-        {tickets &&
-          uniqueCategories?.map((uniqueCategory, categoryIndex) => (
-            <div key={categoryIndex} className="mb-4">
-              <h2>{uniqueCategory}</h2>
-              <div className="lg:grid grid-cols-2 xl:grid-cols-4 ">
-                {tickets
-                  .filter((ticket) => ticket.category === uniqueCategory)
-                  .map((filteredTicket, _index) => (
-                    <TicketCard
-                      id={_index}
-                      key={_index}
-                      ticket={filteredTicket}
-                    />
-                  ))}
-              </div>
+        {uniqueCategories.map((uniqueCategory, categoryIndex) => (
+          <div key={categoryIndex} className="mb-4">
+            <h2>{uniqueCategory}</h2>
+            <div className="lg:grid grid-cols-2 xl:grid-cols-4">
+              {tickets
+                .filter((ticket) => ticket.category === uniqueCategory)
+                .map((filteredTicket) => (
+                  <TicketCard
+                    key={filteredTicket._id}
+                    ticket={filteredTicket}
+                  />
+                ))}
             </div>
-          ))}
+          </div>
+        ))}
       </div>
     </div>
   );
